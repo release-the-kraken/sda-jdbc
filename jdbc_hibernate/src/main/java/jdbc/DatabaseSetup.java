@@ -4,11 +4,11 @@ import java.sql.*;
 
 import static jdbc.Constants.*;
 
-public class DatabaseOperations {
+public class DatabaseSetup {
     public static void main(String[] args) {
-        try ( Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);){
-            Statement statement = connection.createStatement();
-
+        try ( Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+              Statement statement = connection.createStatement();
+        ){
             ResultSet resultSet = statement.executeQuery("SELECT * FROM animal");
 
             while(resultSet.next()){
