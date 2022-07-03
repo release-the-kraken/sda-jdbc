@@ -18,11 +18,11 @@ public class PreparedStatementExercise {
                         "VALUES" +
                         "(?, ?)");
 
-            for (int i = 0; i < NUMBER_OF_USERS; i++){
+          /*  for (int i = 0; i < NUMBER_OF_USERS; i++){
                 preparedStatement.setString(1, userNames.get(i));
                 preparedStatement.setString(2, userPasswords.get(i));
                 preparedStatement.executeUpdate();
-            }
+            }*/
             ResultSet resultSet = statement.executeQuery("SELECT * FROM user");
             while (resultSet.next()){
                 int id = resultSet.getInt("id");
