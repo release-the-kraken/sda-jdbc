@@ -3,7 +3,7 @@ package jdbc;
 import java.sql.*;
 import java.util.List;
 
-import static jdbc.Constants.*;
+import static jdbc.Configuration.*;
 
 public class PreparedStatementExercise {
 

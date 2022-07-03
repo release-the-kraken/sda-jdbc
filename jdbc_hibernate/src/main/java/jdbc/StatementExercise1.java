@@ -2,7 +2,7 @@ package jdbc;
 
 import java.sql.*;
 
-import static jdbc.Constants.*;
+import static jdbc.Configuration.*;
 
 public class StatementExercise1 {
     public static void main(String[] args) {

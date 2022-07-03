@@ -1,8 +1,10 @@
-package jdbc.model;
+package jdbc;
+
+import jdbc.model.User;
 
 import java.sql.*;
 
-import static jdbc.Constants.*;
+import static jdbc.Configuration.*;
 import static jdbc.model.Users.users;
 
 public class UserMain {
