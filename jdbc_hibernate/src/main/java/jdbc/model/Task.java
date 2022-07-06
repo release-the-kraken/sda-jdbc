@@ -6,7 +6,10 @@ public class Task {
     private String description;
     private Long userId;
 
-    public Task(long id, String description, long userId) {
+    public Task(long id, String description, Long userId) {
+        if(id < 0){
+            throw new IllegalArgumentException("Id cannot be a negative number");
+        }
         this.id = id;
         this.description = description;
         this.userId = userId;

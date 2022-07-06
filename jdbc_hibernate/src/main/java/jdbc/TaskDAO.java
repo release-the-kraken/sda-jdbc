@@ -1,13 +1,17 @@
 package jdbc;
 
 import jdbc.model.Task;
+import jdbc.model.User;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static jdbc.Configuration.*;
+import static jdbc.model.TaskDAOHelper.populateTaskList;
+import static jdbc.model.Users.users;
 
 public class TaskDAO implements AutoCloseable {
 
@@ -48,36 +52,85 @@ public class TaskDAO implements AutoCloseable {
         PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM task WHERE id=?");
         preparedStatement.setLong(1, id);
         ResultSet resultSet = preparedStatement.executeQuery();
-        Optional<Task> task;
-        if(resultSet.next()){
+        Task task = null;
+        if(resultSet.next()) {
             long task_id = resultSet.getLong("id");
             String description = resultSet.getString("description");
             long user_id = resultSet.getLong("user_id");
-            task = Optional.of(new Task(task_id, description, user_id));
-        }else{
-            task = Optional.empty();
+            task = new Task(task_id, description, user_id);
         }
-        return task;
+        preparedStatement.close();
+        resultSet.close();
+        return Optional.ofNullable(task);
     }
 
     public List<Task> readAll() throws SQLException {
         // wyciągamy wszystkie wiersze z bazy danych
         // wyniki zapisujemy w liście obiektów klasy Task
-        return Collections.emptyList();
+        List<Task> tasks = new ArrayList<>();
+        Statement statement = connection.createStatement();
+        ResultSet resultSet = statement.executeQuery("SELECT * FROM task");
+        while (resultSet.next()){
+            populateTaskList(resultSet, tasks);
+        }
+        statement.close();
+        resultSet.close();
+        return tasks;
     }
 
     public void update(Task task) throws SQLException {
-        // aktualizujemy description i user_id na podstawie id taska
+        if(task == null){
+            System.out.println("Failed to insert task. Value is null.");
+            return;
+        }
+        PreparedStatement preparedStatement;
+        if(task.getDescription() == null || task.getDescription().equals("")){
+            preparedStatement = connection.prepareStatement("UPDATE task SET user_id=? WHERE id=?");
+            preparedStatement.setLong(1, task.getUserId());
+            preparedStatement.setLong(2, task.getId());
+        }else if(task.getUserId() == null){
+            preparedStatement = connection.prepareStatement("UPDATE task SET description=? WHERE id=?");
+            preparedStatement.setString(1, task.getDescription());
+            preparedStatement.setLong(2, task.getId());
+        }else {
+            preparedStatement = connection.prepareStatement("UPDATE task SET description=?, user_id=? WHERE id=?");
+            preparedStatement.setString(1, task.getDescription());
+            preparedStatement.setLong(2, task.getUserId());
+            preparedStatement.setLong(3, task.getId());
+        }
+        preparedStatement.executeUpdate();
+        preparedStatement.close();
     }
 
     public void delete(long id) throws SQLException {
+        if(id <= 0){
+            throw new IllegalArgumentException("Id cannot be zero or a negative number");
+        }
         // usuwamy wiersz z bazy na podstawie id taska
+        PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM task WHERE id=?");
+        preparedStatement.setLong(1, id);
+        preparedStatement.executeUpdate();
+        preparedStatement.close();
     }
 
     public List<Task> readAllForUser(String username) throws SQLException {
         // dla ochotników
         // konstruujemy query z użyciem JOIN i odwołaniem do tabeli user
-        return Collections.emptyList();
+        if(username == null || username.equals("")){
+            throw new IllegalArgumentException("User name cannot be null or empty string");
+        }
+        List<Task> usersTasks = new ArrayList<>();
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM user " +
+                "JOIN task ON user.id = task.user_id " +
+                "WHERE user.username=?");
+        preparedStatement.setString(1, username);
+        ResultSet resultSet = preparedStatement.executeQuery();
+        while (resultSet.next()){
+            populateTaskList(resultSet, usersTasks);
+        }
+        preparedStatement.close();
+        resultSet.close();
+        return usersTasks;
     }
 
     @Override
@@ -86,4 +139,5 @@ public class TaskDAO implements AutoCloseable {
             connection.close();
         }
     }
+
 }
